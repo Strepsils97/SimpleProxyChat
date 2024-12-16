@@ -55,31 +55,38 @@ public class Bot {
         config.addReloadListener(this::updateStatus);
     }
 
-    public void sendMessage(final String messageToSend) {
+    private void sendMessageToChannel(TextChannel channel, String messageToSend) {
+        String message = Helper.sanitize(messageToSend);
+        message = Arrays.stream(message.split(" ")).map((originalString) -> {
+            if (!originalString.startsWith("@")) return originalString;
+            String name = originalString.replace("@", "");
+
+            List<Member> potentialMembers = channel.getMembers();
+            Optional<Member> potentialMember = potentialMembers
+                    .stream()
+                    .filter((member) -> ((member.getNickname() != null && member.getNickname().equalsIgnoreCase(name)) || member.getEffectiveName().equalsIgnoreCase(name)))
+                    .findFirst();
+
+            return potentialMember.map(IMentionable::getAsMention).orElse(originalString);
+        }).collect(Collectors.joining(" "));
+
+        channel.sendMessage(message).queue();
+    }
+
+    public void sendPrivateMessage(final String messageToSend) {
         if (bot == null) return;
-
-        this.getBotTextChannel().ifPresentOrElse(
-                (mainTextChannel) -> {
-                    String message = Helper.sanitize(messageToSend);
-                    message = Arrays.stream(message.split(" ")).map((originalString) -> {
-                        if (!originalString.startsWith("@")) return originalString;
-                        String name = originalString.replace("@", "");
-
-                        List<Member> potentialMembers = mainTextChannel.getMembers();
-                        Optional<Member> potentialMember = potentialMembers
-                                .stream()
-                                .filter((member) -> ((member.getNickname() != null && member.getNickname().equalsIgnoreCase(name)) || member.getEffectiveName().equalsIgnoreCase(name)))
-                                .findFirst();
-
-                        return potentialMember.map(IMentionable::getAsMention).orElse(originalString);
-                    }).collect(Collectors.joining(" "));
-
-                    mainTextChannel.sendMessage(message).queue();
-                },
+        this.getBotPrivateTextChannel().ifPresentOrElse(
+                (channel) -> sendMessageToChannel(channel, messageToSend),
                 () -> errorLogger.accept("There was an error sending a message to Discord. Does the channel exist? Does the bot have access to the channel?")
         );
+    }
 
-
+    public void sendMessage(final String messageToSend) {
+        if (bot == null) return;
+        this.getBotTextChannel().ifPresentOrElse(
+            (channel) -> sendMessageToChannel(channel, messageToSend),
+            () -> errorLogger.accept("There was an error sending a message to Discord. Does the channel exist? Does the bot have access to the channel?")
+        );
     }
 
     /**
@@ -97,6 +104,10 @@ public class Bot {
 
     public Optional<TextChannel> getBotTextChannel() {
         return Optional.ofNullable(bot.getTextChannelById(config.get(ConfigKey.CHANNEL_ID).asString()));
+    }
+
+    public Optional<TextChannel> getBotPrivateTextChannel() {
+        return Optional.ofNullable(bot.getTextChannelById(config.get(ConfigKey.PRIVATE_CHANNEL_ID).asString()));
     }
 
     private MessageEmbed sanitizeEmbed(final MessageEmbed oldEmbed) {

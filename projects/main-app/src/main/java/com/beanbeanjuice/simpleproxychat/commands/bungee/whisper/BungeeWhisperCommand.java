@@ -1,6 +1,7 @@
 package com.beanbeanjuice.simpleproxychat.commands.bungee.whisper;
 
 import com.beanbeanjuice.simpleproxychat.SimpleProxyChatBungee;
+import com.beanbeanjuice.simpleproxychat.discord.Bot;
 import com.beanbeanjuice.simpleproxychat.utility.helper.Helper;
 import com.beanbeanjuice.simpleproxychat.utility.Tuple;
 import com.beanbeanjuice.simpleproxychat.utility.config.Config;
@@ -10,6 +11,7 @@ import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Command;
 import net.md_5.bungee.api.plugin.TabExecutor;
+import org.spicord.bot.DiscordBot;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -20,11 +22,13 @@ public class BungeeWhisperCommand extends Command implements TabExecutor {
 
     private final SimpleProxyChatBungee plugin;
     private final Config config;
+    private final Bot discordBot;
 
     public BungeeWhisperCommand(final SimpleProxyChatBungee plugin, final String... aliases) {
         super("Spc-whisper", Permission.COMMAND_WHISPER.getPermissionNode(), aliases);
         this.plugin = plugin;
         this.config = plugin.getConfig();
+        this.discordBot = plugin.getDiscordBot();
     }
 
     @Override
@@ -58,6 +62,7 @@ public class BungeeWhisperCommand extends Command implements TabExecutor {
         receiver.sendMessage(Helper.convertToBungee(receiverString));
 
         plugin.getWhisperHandler().set(sender.getName(), receiver.getName());
+        discordBot.sendPrivateMessage(senderString);
     }
 
     @Override

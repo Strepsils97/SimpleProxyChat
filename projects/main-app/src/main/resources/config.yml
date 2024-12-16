@@ -13,6 +13,7 @@ BOT-TOKEN: "TOKEN_HERE"
 
 # Channel to send Discord messages to (IGNORE IF use_discord = false).
 CHANNEL-ID: "GLOBAL_CHANNEL_ID"
+MSG-CHANNEL-ID: "PRIVATE_CHANNEL_ID"
 
 bot-activity:
   # Valid Types: ONLINE, DO_NOT_DISTURB, IDLE, INVISIBLE

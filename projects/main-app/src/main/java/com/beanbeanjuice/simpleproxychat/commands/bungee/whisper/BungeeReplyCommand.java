@@ -1,6 +1,7 @@
 package com.beanbeanjuice.simpleproxychat.commands.bungee.whisper;
 
 import com.beanbeanjuice.simpleproxychat.SimpleProxyChatBungee;
+import com.beanbeanjuice.simpleproxychat.discord.Bot;
 import com.beanbeanjuice.simpleproxychat.utility.helper.Helper;
 import com.beanbeanjuice.simpleproxychat.utility.Tuple;
 import com.beanbeanjuice.simpleproxychat.utility.config.Config;
@@ -16,11 +17,13 @@ public class BungeeReplyCommand extends Command {
 
     private final SimpleProxyChatBungee plugin;
     private final Config config;
+    private final Bot discordBot;
 
     public BungeeReplyCommand(final SimpleProxyChatBungee plugin, final String... aliases) {
         super("Spc-reply", Permission.COMMAND_WHISPER.getPermissionNode(), aliases);
         this.plugin = plugin;;
         this.config = plugin.getConfig();
+        this.discordBot = plugin.getDiscordBot();
     }
 
     @Override
@@ -45,6 +48,8 @@ public class BungeeReplyCommand extends Command {
                     receiver.sendMessage(Helper.convertToBungee(receiverString));
 
                     plugin.getWhisperHandler().set(sender.getName(), receiver.getName());
+                    discordBot.sendPrivateMessage(senderString);
+
                 },
                 () -> sender.sendMessage(Helper.convertToBungee(config.get(ConfigKey.MINECRAFT_WHISPER_ERROR).asString()))
         );
